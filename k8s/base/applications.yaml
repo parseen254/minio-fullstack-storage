@@ -1,0 +1,166 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: minio-storage
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: minio-storage/backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: MINIO_ENDPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: MINIO_ENDPOINT
+        - name: MINIO_ACCESS_KEY_ID
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: MINIO_ACCESS_KEY_ID
+        - name: MINIO_SECRET_ACCESS_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: MINIO_SECRET_ACCESS_KEY
+        - name: MINIO_USE_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: MINIO_USE_SSL
+        - name: MINIO_REGION
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: MINIO_REGION
+        - name: REDIS_ADDR
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: REDIS_ADDR
+        - name: NATS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: NATS_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: minio-storage-secret
+              key: jwt-secret
+        - name: USERS_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: USERS_BUCKET
+        - name: POSTS_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: POSTS_BUCKET
+        - name: FILES_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: minio-storage-config
+              key: FILES_BUCKET
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: minio-storage
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: minio-storage
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: minio-storage/frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          value: "http://backend-service:8080"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: minio-storage
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: frontend

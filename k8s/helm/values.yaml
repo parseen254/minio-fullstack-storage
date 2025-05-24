@@ -1,0 +1,218 @@
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# Application configuration
+app:
+  name: minio-storage-system
+  version: "1.0.0"
+
+# Backend configuration
+backend:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: minio-storage/backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  
+  env:
+    PORT: "8080"
+    GIN_MODE: "release"
+    MINIO_ENDPOINT: "minio:9000"
+    MINIO_ACCESS_KEY: "minioadmin"
+    MINIO_SECRET_KEY: "minioadmin123"
+    REDIS_URL: "redis://redis:6379"
+    NATS_URL: "nats://nats:4222"
+    JWT_SECRET: "your-super-secret-jwt-key-change-in-production"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: minio-storage/frontend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  
+  env:
+    NEXT_PUBLIC_API_URL: "http://backend:8080"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+
+# MinIO configuration
+minio:
+  enabled: true
+  mode: distributed
+  replicas: 4
+  
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: ""
+  
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  
+  auth:
+    rootUser: minioadmin
+    rootPassword: minioadmin123
+  
+  defaultBuckets: "users,posts,files"
+  
+  console:
+    enabled: true
+    service:
+      type: LoadBalancer
+      port: 9001
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: false
+  
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+  
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# NATS configuration
+nats:
+  enabled: true
+  image:
+    repository: nats
+    tag: "2.10.11-alpine"
+  
+  config:
+    jetstream:
+      enabled: true
+      maxMemoryStore: 1Gi
+      maxFileStore: 10Gi
+  
+  service:
+    type: ClusterIP
+    ports:
+      client: 4222
+      monitoring: 8222
+  
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  
+  hosts:
+    - host: minio-storage.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+        - path: /api
+          pathType: Prefix
+          service: backend
+        - path: /console
+          pathType: Prefix
+          service: minio-console
+  
+  tls:
+    - secretName: minio-storage-tls
+      hosts:
+        - minio-storage.example.com
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    scrapeTimeout: 10s
+  
+  prometheusRule:
+    enabled: true
+
+# Security configuration
+podSecurityPolicy:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  ingress:
+    - from: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+rbac:
+  create: true
+
+# Node affinity and tolerations
+nodeSelector: {}
+tolerations: []
+affinity: {}

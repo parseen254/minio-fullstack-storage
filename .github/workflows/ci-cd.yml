@@ -1,0 +1,304 @@
+name: MinIO Storage System CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE_NAME: minio-storage/backend
+  FRONTEND_IMAGE_NAME: minio-storage/frontend
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    services:
+      minio:
+        image: minio/minio
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports:
+          - 9000:9000
+        options: --health-cmd "curl -f http://localhost:9000/minio/health/live" --health-interval 30s --health-timeout 20s --health-retries 3
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+      
+      nats:
+        image: nats:2-alpine
+        ports:
+          - 4222:4222
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      working-directory: ./backend
+      run: go mod download
+    
+    - name: Run tests
+      working-directory: ./backend
+      run: go test -v ./...
+      env:
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY_ID: minioadmin
+        MINIO_SECRET_ACCESS_KEY: minioadmin
+        MINIO_USE_SSL: false
+        REDIS_ADDR: localhost:6379
+        NATS_URL: nats://localhost:4222
+        JWT_SECRET: test-secret
+    
+    - name: Build backend
+      working-directory: ./backend
+      run: go build -o bin/server ./cmd/server
+    
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'gosec-report.sarif'
+      continue-on-error: true
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: ./frontend
+      run: npm ci
+    
+    - name: Run linting
+      working-directory: ./frontend
+      run: npm run lint
+    
+    - name: Run type checking
+      working-directory: ./frontend
+      run: npm run type-check
+    
+    - name: Run tests
+      working-directory: ./frontend
+      run: npm test -- --passWithNoTests
+    
+    - name: Build frontend
+      working-directory: ./frontend
+      run: npm run build
+      env:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Start services
+      run: |
+        cd docker
+        docker-compose up -d
+        sleep 30
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+    
+    - name: Build and start backend
+      working-directory: ./backend
+      run: |
+        go build -o bin/server ./cmd/server
+        ./bin/server &
+        sleep 10
+      env:
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY_ID: minioadmin
+        MINIO_SECRET_ACCESS_KEY: minioadmin
+        REDIS_ADDR: localhost:6379
+        NATS_URL: nats://localhost:4222
+        JWT_SECRET: test-secret
+    
+    - name: Run integration tests
+      run: |
+        # Test health endpoint
+        curl -f http://localhost:8080/health
+        
+        # Test user registration
+        curl -X POST http://localhost:8080/api/v1/auth/register \
+          -H "Content-Type: application/json" \
+          -d '{"username":"testuser","email":"test@example.com","password":"password123","firstName":"Test","lastName":"User"}'
+    
+    - name: Cleanup
+      run: |
+        cd docker
+        docker-compose down
+
+  build-images:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend, integration-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata for backend
+      id: meta-backend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push backend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        push: true
+        tags: ${{ steps.meta-backend.outputs.tags }}
+        labels: ${{ steps.meta-backend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Extract metadata for frontend
+      id: meta-frontend
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+    
+    - name: Build and push frontend image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        push: true
+        tags: ${{ steps.meta-frontend.outputs.tags }}
+        labels: ${{ steps.meta-frontend.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your staging deployment commands here
+        # kubectl apply -f k8s/staging/
+    
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build-images]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment commands here
+        # kubectl apply -f k8s/production/
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up services for performance testing
+      run: |
+        cd docker
+        docker-compose up -d
+        sleep 30
+    
+    - name: Install k6
+      run: |
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+    
+    - name: Run performance tests
+      run: |
+        # Add k6 performance test script
+        echo "Performance testing would run here"
+        # k6 run performance-tests.js
