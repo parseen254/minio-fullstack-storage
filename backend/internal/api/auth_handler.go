@@ -21,6 +21,18 @@ func NewAuthHandler(storageService *services.StorageService, jwtManager *auth.JW
 	}
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user account
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param request body models.RegisterRequest true "User registration data"
+// @Success 201 {object} models.AuthResponse "User registered successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 409 {object} models.ErrorResponse "User already exists"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req models.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -31,10 +43,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Check if user already exists
+	// Check if user already exists (by email)
 	if _, err := h.storageService.GetUserByEmail(c.Request.Context(), req.Email); err == nil {
 		c.JSON(http.StatusConflict, models.ErrorResponse{
-			Error: "User already exists",
+			Error: "User with this email already exists",
+		})
+		return
+	}
+
+	// Check if username already exists
+	if _, err := h.storageService.GetUserByUsername(c.Request.Context(), req.Username); err == nil {
+		c.JSON(http.StatusConflict, models.ErrorResponse{
+			Error: "Username already taken",
 		})
 		return
 	}
@@ -74,15 +94,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusCreated, models.AuthResponse{
-		User:  user,
+		User:  user.ToUserResponse(),
 		Token: token,
 	})
 }
 
+// Login godoc
+// @Summary Login user
+// @Description Authenticate user and return JWT token
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "User login credentials"
+// @Success 200 {object} models.AuthResponse "Login successful"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse "Invalid credentials"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req models.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -92,8 +121,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Get user by email
-	user, err := h.storageService.GetUserByEmail(c.Request.Context(), req.Email)
+	// Get user by username
+	user, err := h.storageService.GetUserByUsername(c.Request.Context(), req.Username)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, models.ErrorResponse{
 			Error: "Invalid credentials",
@@ -118,15 +147,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusOK, models.AuthResponse{
-		User:  user,
+		User:  user.ToUserResponse(),
 		Token: token,
 	})
 }
 
+// GetProfile godoc
+// @Summary Get user profile
+// @Description Get current user's profile information
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} models.SuccessResponse{data=models.User} "Profile retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Router /profile [get]
 func (h *AuthHandler) GetProfile(c *gin.Context) {
 	userID := c.GetString("userID")
 
@@ -138,12 +175,9 @@ func (h *AuthHandler) GetProfile(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Profile retrieved successfully",
-		Data:    user,
+		Data:    user.ToUserResponse(),
 	})
 }
 
@@ -191,11 +225,8 @@ func (h *AuthHandler) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "Profile updated successfully",
-		Data:    user,
+		Data:    user.ToUserResponse(),
 	})
 }

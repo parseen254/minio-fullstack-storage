@@ -18,6 +18,19 @@ func NewUserHandler(storageService *services.StorageService) *UserHandler {
 	}
 }
 
+// ListUsers godoc
+// @Summary List users
+// @Description Get a list of users with pagination
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Page size" default(10)
+// @Success 200 {object} models.ListResponse{data=[]models.UserResponse} "Users retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /users [get]
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	pagination := c.MustGet("pagination").(models.Pagination)
 
@@ -31,19 +44,32 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		return
 	}
 
-	// Remove passwords from response
-	for _, user := range users {
-		user.Password = ""
+	// Convert to UserResponse to exclude sensitive data
+	userResponses := make([]*models.UserResponse, len(users))
+	for i, user := range users {
+		userResponses[i] = user.ToUserResponse()
 	}
 
 	pagination.Total = total
 
 	c.JSON(http.StatusOK, models.ListResponse{
-		Data:       users,
+		Data:       userResponses,
 		Pagination: pagination,
 	})
 }
 
+// GetUser godoc
+// @Summary Get user by ID
+// @Description Get a specific user by their ID
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 200 {object} models.SuccessResponse{data=models.UserResponse} "User retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Router /users/{id} [get]
 func (h *UserHandler) GetUser(c *gin.Context) {
 	userID := c.Param("id")
 
@@ -57,15 +83,28 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "User retrieved successfully",
-		Data:    user,
+		Data:    user.ToUserResponse(),
 	})
 }
 
+// UpdateUser godoc
+// @Summary Update user
+// @Description Update user information (users can only update their own profile, admins can update any user)
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param request body models.User true "User update data"
+// @Success 200 {object} models.SuccessResponse{data=models.User} "User updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /users/{id} [put]
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userID := c.Param("id")
 	currentUserID := c.GetString("userID")
@@ -127,15 +166,26 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Remove password from response
-	user.Password = ""
-
 	c.JSON(http.StatusOK, models.SuccessResponse{
 		Message: "User updated successfully",
-		Data:    user,
+		Data:    user.ToUserResponse(),
 	})
 }
 
+// DeleteUser godoc
+// @Summary Delete user
+// @Description Delete a user (admin only)
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Success 200 {object} models.SuccessResponse "User deleted successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /users/{id} [delete]
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID := c.Param("id")
 	currentUserID := c.GetString("userID")

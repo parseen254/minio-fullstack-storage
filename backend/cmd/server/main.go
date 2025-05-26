@@ -14,7 +14,31 @@ import (
 	"github.com/minio-fullstack-storage/backend/internal/api"
 	"github.com/minio-fullstack-storage/backend/internal/config"
 	"github.com/minio-fullstack-storage/backend/internal/services"
+
+	_ "github.com/minio-fullstack-storage/backend/docs"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title MinIO Fullstack Storage API
+// @version 1.0
+// @description A scalable storage system built with MinIO, Go, and Next.js
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 
 func main() {
 	// Load configuration
@@ -41,11 +65,14 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
-		MaxAge:          12 * time.Hour,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	// Setup API routes
 	api.SetupRoutes(router, cfg, storageService)
+
+	// Swagger documentation
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// Configure server
 	srv := &http.Server{

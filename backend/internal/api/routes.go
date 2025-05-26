@@ -23,6 +23,13 @@ func SetupRoutes(router *gin.Engine, cfg *config.Config, storageService *service
 	router.Use(RateLimitMiddleware())
 
 	// Health check
+	// @Summary Health check
+	// @Description Check if the API is running
+	// @Tags health
+	// @Accept json
+	// @Produce json
+	// @Success 200 {object} map[string]string "API is healthy"
+	// @Router /health [get]
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "healthy",

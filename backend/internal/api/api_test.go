@@ -115,7 +115,7 @@ func TestUserLogin(t *testing.T) {
 
 	// Now try to login
 	loginUser := models.LoginRequest{
-		Email:    email,
+		Username: fmt.Sprintf("logintest%d", timestamp),
 		Password: "password123",
 	}
 
@@ -138,7 +138,7 @@ func TestInvalidLogin(t *testing.T) {
 	router := setupTestRouter(t)
 
 	loginUser := models.LoginRequest{
-		Email:    "nonexistent@example.com",
+		Username: "nonexistentuser",
 		Password: "wrongpassword",
 	}
 

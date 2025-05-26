@@ -18,6 +18,19 @@ func NewPostHandler(storageService *services.StorageService) *PostHandler {
 	}
 }
 
+// CreatePost godoc
+// @Summary Create a new post
+// @Description Create a new post for the authenticated user
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body models.Post true "Post data"
+// @Success 201 {object} models.SuccessResponse{data=models.Post} "Post created successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /posts [post]
 func (h *PostHandler) CreatePost(c *gin.Context) {
 	userID := c.GetString("userID")
 
@@ -51,6 +64,18 @@ func (h *PostHandler) CreatePost(c *gin.Context) {
 	})
 }
 
+// GetPost godoc
+// @Summary Get a post by ID
+// @Description Get a specific post by its ID
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Post ID"
+// @Success 200 {object} models.SuccessResponse{data=models.Post} "Post retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 404 {object} models.ErrorResponse "Post not found"
+// @Router /posts/{id} [get]
 func (h *PostHandler) GetPost(c *gin.Context) {
 	postID := c.Param("id")
 
@@ -70,6 +95,22 @@ func (h *PostHandler) GetPost(c *gin.Context) {
 	})
 }
 
+// UpdatePost godoc
+// @Summary Update a post
+// @Description Update a post (users can only update their own posts, admins can update any post)
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Post ID"
+// @Param request body models.Post true "Post update data"
+// @Success 200 {object} models.SuccessResponse{data=models.Post} "Post updated successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "Post not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /posts/{id} [put]
 func (h *PostHandler) UpdatePost(c *gin.Context) {
 	postID := c.Param("id")
 	userID := c.GetString("userID")
@@ -138,6 +179,20 @@ func (h *PostHandler) UpdatePost(c *gin.Context) {
 	})
 }
 
+// DeletePost godoc
+// @Summary Delete a post
+// @Description Delete a post (users can only delete their own posts, admins can delete any post)
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "Post ID"
+// @Success 200 {object} models.SuccessResponse "Post deleted successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "Post not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /posts/{id} [delete]
 func (h *PostHandler) DeletePost(c *gin.Context) {
 	postID := c.Param("id")
 	userID := c.GetString("userID")
@@ -179,6 +234,19 @@ func (h *PostHandler) DeletePost(c *gin.Context) {
 	})
 }
 
+// ListPosts godoc
+// @Summary List all posts
+// @Description Get a paginated list of all posts
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Success 200 {object} models.ListResponse{data=[]models.Post} "Posts retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /posts [get]
 func (h *PostHandler) ListPosts(c *gin.Context) {
 	pagination := c.MustGet("pagination").(models.Pagination)
 
@@ -200,6 +268,20 @@ func (h *PostHandler) ListPosts(c *gin.Context) {
 	})
 }
 
+// GetUserPosts godoc
+// @Summary Get posts by user ID
+// @Description Get a paginated list of posts by a specific user
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param userId path string true "User ID"
+// @Param page query int false "Page number" default(1)
+// @Param pageSize query int false "Number of items per page" default(10)
+// @Success 200 {object} models.ListResponse{data=[]models.Post} "User posts retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /posts/user/{userId} [get]
 func (h *PostHandler) GetUserPosts(c *gin.Context) {
 	pagination := c.MustGet("pagination").(models.Pagination)
 

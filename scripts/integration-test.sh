@@ -98,7 +98,7 @@ echo ""
 # Test 4: User Login (if registration was successful)
 echo "4. Testing User Login"
 LOGIN_DATA='{
-    "email": "integration@test.com",
+    "username": "integrationtest",
     "password": "password123"
 }'
 
@@ -108,7 +108,7 @@ echo ""
 # Test 5: Invalid Login
 echo "5. Testing Invalid Login"
 INVALID_LOGIN_DATA='{
-    "email": "nonexistent@test.com",
+    "username": "nonexistentuser",
     "password": "wrongpassword"
 }'
 

@@ -9,7 +9,7 @@ type User struct {
 	ID        string    `json:"id"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
-	Password  string    `json:"password,omitempty"`
+	Password  string    `json:"-"` // Never include password in JSON responses
 	FirstName string    `json:"firstName"`
 	LastName  string    `json:"lastName"`
 	Role      string    `json:"role"`
@@ -58,7 +58,7 @@ type Pagination struct {
 
 // LoginRequest for authentication
 type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
+	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -71,10 +71,40 @@ type RegisterRequest struct {
 	LastName  string `json:"lastName" binding:"required"`
 }
 
+// UserResponse for API responses (excludes sensitive data)
+type UserResponse struct {
+	ID        string    `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Role      string    `json:"role"`
+	Avatar    string    `json:"avatar,omitempty"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	ETag      string    `json:"etag,omitempty"`
+}
+
+// ToUserResponse converts User to UserResponse (removing sensitive data)
+func (u *User) ToUserResponse() *UserResponse {
+	return &UserResponse{
+		ID:        u.ID,
+		Username:  u.Username,
+		Email:     u.Email,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Role:      u.Role,
+		Avatar:    u.Avatar,
+		CreatedAt: u.CreatedAt,
+		UpdatedAt: u.UpdatedAt,
+		ETag:      u.ETag,
+	}
+}
+
 // AuthResponse for login/register responses
 type AuthResponse struct {
-	User  *User  `json:"user"`
-	Token string `json:"token"`
+	User  *UserResponse `json:"user"`
+	Token string        `json:"token"`
 }
 
 // ErrorResponse for API errors

@@ -155,6 +155,42 @@ func (s *StorageService) GetUserByEmail(ctx context.Context, email string) (*mod
 	return nil, fmt.Errorf("user not found")
 }
 
+func (s *StorageService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	// List all users and find by username (in production, consider using an index)
+	objectsCh := s.client.ListObjects(ctx, s.usersBucket, minio.ListObjectsOptions{
+		Prefix:    "users/",
+		Recursive: true,
+	})
+
+	for object := range objectsCh {
+		if object.Err != nil {
+			continue
+		}
+
+		obj, err := s.client.GetObject(ctx, s.usersBucket, object.Key, minio.GetObjectOptions{})
+		if err != nil {
+			continue
+		}
+
+		data, err := io.ReadAll(obj)
+		obj.Close()
+		if err != nil {
+			continue
+		}
+
+		var user models.User
+		if err := json.Unmarshal(data, &user); err != nil {
+			continue
+		}
+
+		if user.Username == username {
+			return &user, nil
+		}
+	}
+
+	return nil, fmt.Errorf("user not found")
+}
+
 func (s *StorageService) UpdateUser(ctx context.Context, user *models.User) error {
 	user.UpdatedAt = time.Now()
 

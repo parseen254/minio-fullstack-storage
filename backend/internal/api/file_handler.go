@@ -20,6 +20,19 @@ func NewFileHandler(storageService *services.StorageService) *FileHandler {
 	}
 }
 
+// UploadFile godoc
+// @Summary Upload a file
+// @Description Upload a file to the storage system
+// @Tags files
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param file formData file true "File to upload"
+// @Success 201 {object} models.SuccessResponse{data=models.File} "File uploaded successfully"
+// @Failure 400 {object} models.ErrorResponse "Invalid request format"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /files/upload [post]
 func (h *FileHandler) UploadFile(c *gin.Context) {
 	userID := c.GetString("userID")
 
@@ -75,6 +88,18 @@ func (h *FileHandler) UploadFile(c *gin.Context) {
 	})
 }
 
+// GetFile godoc
+// @Summary Get file metadata
+// @Description Get file metadata by ID
+// @Tags files
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "File ID"
+// @Success 200 {object} models.SuccessResponse{data=models.File} "File metadata retrieved successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 404 {object} models.ErrorResponse "File not found"
+// @Router /files/{id} [get]
 func (h *FileHandler) GetFile(c *gin.Context) {
 	fileID := c.Param("id")
 
@@ -94,6 +119,19 @@ func (h *FileHandler) GetFile(c *gin.Context) {
 	})
 }
 
+// DownloadFile godoc
+// @Summary Download a file
+// @Description Download a file (users can only download their own files, admins can download any file)
+// @Tags files
+// @Produce application/octet-stream
+// @Security BearerAuth
+// @Param id path string true "File ID"
+// @Success 200 {file} binary "File content"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "File not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /files/{id}/download [get]
 func (h *FileHandler) DownloadFile(c *gin.Context) {
 	fileID := c.Param("id")
 	userID := c.GetString("userID")
@@ -150,6 +188,20 @@ func (h *FileHandler) DownloadFile(c *gin.Context) {
 	}
 }
 
+// DeleteFile godoc
+// @Summary Delete a file
+// @Description Delete a file (users can only delete their own files, admins can delete any file)
+// @Tags files
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "File ID"
+// @Success 200 {object} models.SuccessResponse "File deleted successfully"
+// @Failure 401 {object} models.ErrorResponse "Unauthorized"
+// @Failure 403 {object} models.ErrorResponse "Forbidden"
+// @Failure 404 {object} models.ErrorResponse "File not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /files/{id} [delete]
 func (h *FileHandler) DeleteFile(c *gin.Context) {
 	fileID := c.Param("id")
 	userID := c.GetString("userID")
