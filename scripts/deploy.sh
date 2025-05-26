@@ -1,10 +1,37 @@
 #!/bin/bash
 
-# MinIO Storage System Deployment Script
+# Legacy MinIO Storage System Deployment Script
+# DEPRECATED: Use dev.sh or prod.sh instead for better Docker integration
 set -e
 
-echo "MinIO Scalable Storage System - Deployment Script"
-echo "=================================================="
+echo "MinIO Scalable Storage System - Legacy Deployment Script"
+echo "========================================================"
+echo ""
+echo -e "\033[1;33mDEPRECATION NOTICE:\033[0m"
+echo "This script is deprecated. Please use the new Docker-based scripts:"
+echo ""
+echo "For development:"
+echo "  ./scripts/dev.sh start     # Start development environment"
+echo "  ./scripts/dev.sh stop      # Stop development environment"
+echo "  ./scripts/dev.sh help      # Show all available commands"
+echo ""
+echo "For production:"
+echo "  ./scripts/prod.sh deploy   # Deploy production environment"
+echo "  ./scripts/prod.sh help     # Show all available commands"
+echo ""
+echo "These new scripts provide:"
+echo "- Better Docker integration"
+echo "- Environment isolation"
+echo "- Health checks and monitoring"
+echo "- Easier management and debugging"
+echo ""
+read -p "Do you want to continue with this legacy script anyway? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Exiting. Please use the new scripts for better experience."
+    exit 0
+fi
+echo ""
 
 # Function to check if command exists
 command_exists() {

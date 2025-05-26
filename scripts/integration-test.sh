@@ -3,11 +3,72 @@
 # MinIO Storage System Integration Test Script
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
 echo "MinIO Storage System - Integration Tests"
 echo "========================================"
 
 API_BASE="http://localhost:8080"
 FRONTEND_BASE="http://localhost:3000"
+MINIO_CONSOLE="http://localhost:9001"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Test result tracking
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+print_help() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --setup     Setup test environment before running tests"
+    echo "  --cleanup   Cleanup test environment after tests"
+    echo "  --verbose   Show detailed output"
+    echo "  --help      Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 --setup    # Setup and run tests"
+    echo "  $0            # Run tests only"
+    echo "  $0 --cleanup  # Run tests and cleanup"
+}
+
+# Parse command line arguments
+SETUP_ENV=false
+CLEANUP_ENV=false
+VERBOSE=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --setup)
+            SETUP_ENV=true
+            shift
+            ;;
+        --cleanup)
+            CLEANUP_ENV=true
+            shift
+            ;;
+        --verbose)
+            VERBOSE=true
+            shift
+            ;;
+        --help)
+            print_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            print_help
+            exit 1
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'

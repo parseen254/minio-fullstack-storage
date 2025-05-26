@@ -40,7 +40,7 @@ start_dev() {
     # Copy dev environment if .env doesn't exist
     if [ ! -f .env ]; then
         echo -e "${YELLOW}Creating .env from .env.dev template...${NC}"
-        cp .env.dev.template .env
+        cp .env.dev .env
     fi
     
     docker-compose -f docker-compose.dev.yml up -d
@@ -48,6 +48,7 @@ start_dev() {
     echo -e "${BLUE}Frontend: http://localhost:3000${NC}"
     echo -e "${BLUE}Backend: http://localhost:8080${NC}"
     echo -e "${BLUE}MinIO Console: http://localhost:9001${NC}"
+    echo -e "${YELLOW}Default MinIO credentials: minioadmin/minioadmin123${NC}"
 }
 
 stop_dev() {
