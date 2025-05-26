@@ -20,6 +20,16 @@ export default function DashboardPage() {
 
     const currentUser = authService.getCurrentUser()
     setUser(currentUser)
+    
+    // Route based on user role
+    if (currentUser) {
+      if (currentUser.role === 'admin') {
+        router.push('/dashboard/admin')
+      } else {
+        router.push('/dashboard/user')
+      }
+    }
+    
     setIsLoading(false)
   }, [router])
 

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fileService } from '../services/file-service'
 import { QUERY_KEYS } from '../types/api'
-import type { File, UploadProgress } from '../types/api'
+import type { File, UploadProgress, ListFilesParams } from '../types/api'
 import { useState } from 'react'
 
 // File Queries
@@ -144,4 +144,32 @@ export const useFileValidation = () => {
     validateFile,
     validateFiles
   }
+}
+
+// User Files Hook
+export const useUserFiles = (userId: string, params?: ListFilesParams) => {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.files, 'user', userId, params],
+    queryFn: () => fileService.getUserFiles(userId, params),
+    enabled: !!userId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  })
+}
+
+// All Files Hook (for admin)
+export const useFiles = (params?: ListFilesParams) => {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.files, params],
+    queryFn: () => fileService.getFiles(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  })
+}
+
+// File Statistics Hook
+export const useFileStats = () => {
+  return useQuery({
+    queryKey: [...QUERY_KEYS.files, 'stats'],
+    queryFn: () => fileService.getFileStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
 }

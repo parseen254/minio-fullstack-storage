@@ -1,3 +1,4 @@
+import React from "react";
 // API Response Types
 export interface ApiResponse<T = any> {
   data?: T
@@ -129,6 +130,10 @@ export interface ListUsersParams extends PaginationParams {}
 export interface ListPostsParams extends PaginationParams {}
 export interface ListUserPostsParams extends PaginationParams {
   userId: string
+}
+export interface ListFilesParams extends PaginationParams {
+  userId?: string
+  contentType?: string
 }
 
 // Form Types
