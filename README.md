@@ -74,7 +74,11 @@ This system implements a microservices architecture with the following component
 - Go 1.23+ (for local development)
 - Node.js 18+ (for frontend development)
 
-### Development Setup
+### Docker Setup (Recommended)
+
+This project provides optimized Docker configurations for both development and production environments.
+
+#### Development Environment
 
 1. **Clone the repository**
    ```bash
@@ -82,13 +86,92 @@ This system implements a microservices architecture with the following component
    cd minio-fullstack-storage
    ```
 
-2. **Start infrastructure services**
+2. **Start development environment**
    ```bash
+   # Using the convenience script
+   ./scripts/dev.sh start
+   
+   # Or manually with docker-compose
    cd docker
-   docker-compose up -d
+   docker-compose -f docker-compose.dev.yml up -d
    ```
 
-3. **Start the backend**
+3. **Access the application**
+   - Frontend: http://localhost:3000 (Next.js with hot reload)
+   - Backend: http://localhost:8080 (Go with Air hot reload)
+   - MinIO Console: http://localhost:9001 (admin: minioadmin/minioadmin123)
+
+**Development Features:**
+- Hot reload for both frontend and backend
+- Volume mounts for instant code changes
+- Debug-friendly logging
+- Development-optimized images
+- Auto-restart on file changes
+
+#### Production Environment
+
+1. **Setup production environment**
+   ```bash
+   # Create production environment file
+   cp docker/.env.prod.template docker/.env.prod
+   # Edit .env.prod with your production values
+   ```
+
+2. **Deploy to production**
+   ```bash
+   # Using the convenience script
+   ./scripts/prod.sh deploy
+   
+   # Or manually
+   cd docker
+   docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+   ```
+
+**Production Features:**
+- Multi-stage builds for minimal image sizes
+- Non-root user containers for security
+- Health checks and restart policies
+- Resource limits and logging
+- Optimized layer caching
+- Zero-downtime deployments
+
+#### Management Scripts
+
+**Development Script (`scripts/dev.sh`)**
+```bash
+./scripts/dev.sh start     # Start development environment
+./scripts/dev.sh stop      # Stop development environment
+./scripts/dev.sh restart   # Restart development environment
+./scripts/dev.sh logs      # Show logs (follow mode)
+./scripts/dev.sh build     # Rebuild all services
+./scripts/dev.sh clean     # Clean up containers and volumes
+./scripts/dev.sh status    # Show status of all services
+./scripts/dev.sh shell     # Open shell in backend container
+./scripts/dev.sh test      # Run backend tests
+```
+
+**Production Script (`scripts/prod.sh`)**
+```bash
+./scripts/prod.sh start     # Start production environment
+./scripts/prod.sh stop      # Stop production environment
+./scripts/prod.sh deploy    # Deploy with zero downtime
+./scripts/prod.sh backup    # Backup all volumes
+./scripts/prod.sh restore   # Restore from backup
+./scripts/prod.sh health    # Check service health
+./scripts/prod.sh scale     # Scale services
+```
+
+### Local Development Setup (Alternative)
+
+If you prefer to run services locally without Docker:
+
+1. **Start infrastructure services**
+   ```bash
+   cd docker
+   docker-compose up -d minio redis nats
+   ```
+
+2. **Start the backend**
    ```bash
    cd backend
    go mod download
@@ -96,17 +179,12 @@ This system implements a microservices architecture with the following component
    ./bin/server
    ```
 
-4. **Start the frontend**
+3. **Start the frontend**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
-
-5. **Access the application**
-   - Frontend: http://localhost:3000
-   - Backend API: http://localhost:8080
-   - MinIO Console: http://localhost:9001
 
 ### Environment Variables
 

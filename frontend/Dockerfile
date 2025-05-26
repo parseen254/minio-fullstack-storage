@@ -1,36 +1,29 @@
-# Build stage
-FROM node:slim AS builder
+# Development Dockerfile for Next.js Frontend
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install system dependencies
+RUN apk add --no-cache \
+    libc6-compat \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Copy package files for better layer caching
+COPY package.json package-lock.json* ./
+
+# Install all dependencies (including devDependencies for development)
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
-
-# Production stage
-FROM node:slim AS runner
-
-WORKDIR /app
-
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy built application
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
-
+# Expose port
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+# Set development environment
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
 
-CMD ["node", "server.js"]
+# Start development server with hot reload
+CMD ["npm", "run", "dev"]
