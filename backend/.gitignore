@@ -1,0 +1,157 @@
+# Backend Go Application .gitignore
+
+# =============================================================================
+# GO BUILD ARTIFACTS
+# =============================================================================
+# Compiled binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+
+# Output of the go coverage tool
+*.out
+*.cover
+*.coverprofile
+
+# Go build cache
+go-build/
+
+# Go modules download cache
+go/pkg/mod/
+
+# Go workspace file
+go.work
+go.work.sum
+
+# =============================================================================
+# DEVELOPMENT & DEBUGGING
+# =============================================================================
+# Delve debugger
+__debug_bin
+
+# Air live reload
+tmp/
+.air.toml
+
+# Temporary files
+*.tmp
+*.temp
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Local configuration overrides
+config/local.*
+internal/config/local.*
+
+# =============================================================================
+# TESTING
+# =============================================================================
+# Test coverage
+coverage.html
+coverage.out
+profile.out
+
+# Test results
+test-results/
+*.xml
+
+# Benchmark results
+*.bench
+benchmarks/
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+# Generated documentation
+docs/generated/
+
+# Swagger UI files (if auto-generated)
+docs/swagger-ui/
+docs/redoc/
+
+# =============================================================================
+# LOGGING & MONITORING
+# =============================================================================
+# Application logs
+*.log
+logs/
+log/
+
+# Profiling data
+*.prof
+*.pprof
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# JWT secrets (should be in environment)
+jwt-secret.*
+
+# =============================================================================
+# STORAGE & DATA
+# =============================================================================
+# Local MinIO data
+minio-data/
+storage-data/
+
+# Uploaded files (in development)
+uploads/
+files/
+static/uploads/
+
+# Database files (if using embedded DB for development)
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# VENDOR & DEPENDENCIES
+# =============================================================================
+# Vendor directory (if using go modules, this isn't needed)
+vendor/
+
+# =============================================================================
+# IDE & EDITOR
+# =============================================================================
+# GoLand/IntelliJ
+.idea/
+*.iml
+
+# VS Code Go extension
+.vscode/launch.json
+
+# Vim/Neovim
+*.swp
+*.swo
+
+# =============================================================================
+# OS SPECIFIC
+# =============================================================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*~

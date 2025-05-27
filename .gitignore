@@ -1,31 +1,189 @@
-# Go
+# Root .gitignore for MinIO Fullstack Storage Application
+
+# =============================================================================
+# BACKEND (Go)
+# =============================================================================
+# Binaries
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+backend/bin/
+backend/tmp/
+
+# Go build artifacts
 *.test
 *.out
 go.work
+go.work.sum
 
-# Node.js
+# Go mod download cache
+go/pkg/mod/
+
+# =============================================================================
+# FRONTEND (Next.js/React)
+# =============================================================================
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Next.js cache
+.next/cache/
+
+# npm/yarn logs
 npm-debug.log*
-.npm
+yarn-debug.log*
+yarn-error.log*
+
+# =============================================================================
+# ENVIRONMENT & CONFIGURATION
+# =============================================================================
+# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*.local
 
-# Build outputs
-dist/
-build/
-.next/
+# Local configuration overrides
+**/config/local.*
+docker-compose.override.yml
 
+# =============================================================================
+# INFRASTRUCTURE & DEPLOYMENT
+# =============================================================================
+# Docker
+.docker/
+docker-data/
+volumes/
+
+# Kubernetes
+*.kubeconfig
+.kube/
+k8s/secrets/
+k8s/overlays/local/
+
+# Helm
+helm/charts/*.tgz
+
+# Terraform (if used)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# =============================================================================
+# SECURITY & CERTIFICATES
+# =============================================================================
+# SSL/TLS certificates (except example/template ones)
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+!docker/minio/config/certs/CAs/.gitkeep
+
+# SSH keys
+id_rsa*
+id_ed25519*
+*.pub
+
+# =============================================================================
+# MONITORING & LOGGING
+# =============================================================================
 # Logs
 *.log
 logs/
+log/
+
+# Monitoring data
+prometheus-data/
+grafana-data/
+alertmanager-data/
+
+# =============================================================================
+# DEVELOPMENT & TESTING
+# =============================================================================
+# Test coverage
+coverage/
+*.cover
+*.coverprofile
+
+# Test results
+test-results/
+*.xml
+
+# Benchmarks
+*.bench
+
+# =============================================================================
+# IDE & EDITOR
+# =============================================================================
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+!.vscode/settings.json.example
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim/Neovim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# =============================================================================
+# TEMPORARY & BACKUP FILES
+# =============================================================================
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
 
 # Runtime data
 pids/
@@ -33,22 +191,24 @@ pids/
 *.seed
 *.pid.lock
 
-# Docker
-.docker/
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+# MinIO data (if running locally)
+minio-data/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Redis data (if running locally)
+redis-data/
 
-# OS
-.DS_Store
-Thumbs.db
+# Local uploads/files
+uploads/
+files/
 
-# Kubernetes
-*.kubeconfig
+# Documentation builds (if using static site generators)
+docs/_site/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
 
-# Temporary files
-*.tmp
-*.temp
+# Scripts output
+scripts/output/
+scripts/logs/

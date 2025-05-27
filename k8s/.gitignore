@@ -1,0 +1,88 @@
+# Kubernetes .gitignore
+
+# =============================================================================
+# SECRETS & SENSITIVE DATA
+# =============================================================================
+# Kubernetes secrets (should be managed by external systems)
+secrets/
+*-secret.yaml
+*-secret.yml
+
+# Private keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# =============================================================================
+# ENVIRONMENT SPECIFIC
+# =============================================================================
+# Environment-specific overrides
+overlays/local/
+overlays/dev-local/
+
+# Local configuration
+*.local.yaml
+*.local.yml
+
+# =============================================================================
+# HELM
+# =============================================================================
+# Helm charts dependencies
+charts/*.tgz
+charts/*/charts/
+
+# Helm generated files
+helm/templates/generated/
+
+# Values files with secrets
+*-secrets.yaml
+*-secrets.yml
+values-secrets.yaml
+
+# =============================================================================
+# KUSTOMIZE
+# =============================================================================
+# Kustomize build output
+kustomization.yaml.bak
+
+# =============================================================================
+# TOOLS & UTILITIES
+# =============================================================================
+# kubectl cache
+.kubectl_cache/
+
+# Kubeconfig files (should be managed separately)
+*.kubeconfig
+config
+.kube/
+
+# =============================================================================
+# GENERATED MANIFESTS
+# =============================================================================
+# Auto-generated YAML files
+generated/
+*.generated.yaml
+*.generated.yml
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+# Temporary manifests
+*.tmp.yaml
+*.tmp.yml
+*.temp.yaml
+*.temp.yml
+
+# =============================================================================
+# OS SPECIFIC
+# =============================================================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*~

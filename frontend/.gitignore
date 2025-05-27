@@ -1,0 +1,169 @@
+# Frontend Next.js Application .gitignore
+
+# =============================================================================
+# DEPENDENCIES
+# =============================================================================
+# Node modules
+node_modules/
+.pnp
+.pnp.js
+
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# =============================================================================
+# NEXT.JS BUILD OUTPUTS
+# =============================================================================
+# Next.js build output
+.next/
+out/
+
+# Next.js cache
+.next/cache/
+
+# Static exports
+out/
+
+# =============================================================================
+# TYPESCRIPT
+# =============================================================================
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# TypeScript cache
+*.tsbuildinfo
+
+# =============================================================================
+# TESTING
+# =============================================================================
+# Test coverage
+coverage/
+.nyc_output/
+
+# Jest
+jest.config.js.bak
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# =============================================================================
+# ENVIRONMENT & CONFIG
+# =============================================================================
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local configuration
+next.config.local.js
+.env.*.local
+
+# =============================================================================
+# DEVELOPMENT
+# =============================================================================
+# Development logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Storybook build outputs
+storybook-static/
+
+# =============================================================================
+# BUNDLER OUTPUTS
+# =============================================================================
+# Webpack
+.webpack/
+
+# Turbopack
+.turbo/
+
+# Parcel
+.parcel-cache/
+
+# =============================================================================
+# STYLE & ASSETS
+# =============================================================================
+# PostCSS
+.postcssrc.js.bak
+
+# Tailwind
+tailwind.config.js.bak
+
+# Generated CSS (if using CSS-in-JS)
+styles/generated/
+
+# =============================================================================
+# VERCEL & DEPLOYMENT
+# =============================================================================
+# Vercel
+.vercel
+
+# =============================================================================
+# DEBUGGING
+# =============================================================================
+# React DevTools Profiler
+*.cpuprofile
+
+# Source maps (in production, these might contain sensitive info)
+*.map
+
+# =============================================================================
+# EDITOR & IDE
+# =============================================================================
+# VS Code
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+!.vscode/settings.json.example
+
+# WebStorm/IntelliJ
+.idea/
+*.iml
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+# Temporary files
+*.tmp
+*.temp
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*~
+
+# =============================================================================
+# MONITORING & ANALYTICS
+# =============================================================================
+# Bundle analyzer
+.next-bundle-analyzer/
+
+# Lighthouse reports
+lighthouse-reports/
+
+# =============================================================================
+# CUSTOM PROJECT FILES
+# =============================================================================
+# Component screenshots (if auto-generated)
+src/components/**/*.png
+src/components/**/*.jpg
+
+# Auto-generated API documentation
+src/types/generated/
+
+# Development uploads
+public/uploads/dev/
+public/temp/

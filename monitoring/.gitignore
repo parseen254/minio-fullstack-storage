@@ -1,0 +1,55 @@
+# Monitoring .gitignore
+
+# =============================================================================
+# DATA DIRECTORIES
+# =============================================================================
+# Prometheus data
+prometheus-data/
+prometheus/data/
+
+# Grafana data
+grafana-data/
+grafana/data/
+
+# AlertManager data
+alertmanager-data/
+alertmanager/data/
+
+# =============================================================================
+# CONFIGURATION
+# =============================================================================
+# Environment-specific configs
+*.local.yml
+*.local.yaml
+
+# Secrets and credentials
+*-secrets.yml
+*-secrets.yaml
+grafana/provisioning/datasources/secrets/
+
+# =============================================================================
+# LOGS
+# =============================================================================
+# Application logs
+*.log
+logs/
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+# Temporary configs
+*.tmp
+*.temp
+*.bak
+
+# =============================================================================
+# OS SPECIFIC
+# =============================================================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*~
