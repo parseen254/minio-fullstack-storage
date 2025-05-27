@@ -50,8 +50,7 @@ export function UserFileManager({ user }: UserFileManagerProps) {
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 10
 
-  const { data: filesData, isLoading } = useUserFiles({
-    userId: user.id,
+  const { data: filesData, isLoading } = useUserFiles(user.id, {
     page: currentPage,
     pageSize
   })

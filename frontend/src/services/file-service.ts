@@ -10,28 +10,27 @@ import type {
 
 class FileService {
   async getFiles(params?: ListFilesParams): Promise<ListResponse<File>> {
-    const response = await apiClient.get('/files', { params })
-    return response.data
+    const response = await apiClient.get<ListResponse<File>>('/files', { params })
+    return response
   }
 
   async getUserFiles(userId: string, params?: ListFilesParams): Promise<ListResponse<File>> {
-    const response = await apiClient.get(`/users/${userId}/files`, { params })
-    return response.data
+    const response = await apiClient.get<ListResponse<File>>(`/users/${userId}/files`, { params })
+    return response
   }
 
   async getFile(id: string): Promise<File> {
-    const response = await apiClient.get(`/files/${id}`)
-    return response.data
+    const response = await apiClient.get<File>(`/files/${id}`)
+    return response
   }
-
   async uploadFile(
-    file: File, 
+    file: globalThis.File, 
     onProgress?: (progress: UploadProgress) => void
   ): Promise<FileUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await apiClient.post('/files', formData, {
+    const response = await apiClient.post<FileUploadResponse>('/files', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -47,11 +46,10 @@ class FileService {
       }
     })
 
-    return response.data
+    return response
   }
-
   async uploadMultipleFiles(
-    files: File[],
+    files: globalThis.File[],
     onProgress?: (fileIndex: number, progress: UploadProgress) => void,
     onComplete?: (fileIndex: number) => void,
     onError?: (fileIndex: number, error: any) => void
@@ -75,16 +73,16 @@ class FileService {
   }
 
   async downloadFile(id: string, filename?: string): Promise<Blob> {
-    const response = await apiClient.get(`/files/${id}/download`, {
+    const response = await apiClient.get<Blob>(`/files/${id}/download`, {
       responseType: 'blob',
       params: filename ? { filename } : undefined
     })
-    return response.data
+    return response
   }
 
   async deleteFile(id: string): Promise<ApiResponse> {
-    const response = await apiClient.delete(`/files/${id}`)
-    return response.data
+    const response = await apiClient.delete<ApiResponse>(`/files/${id}`)
+    return response
   }
 
   async getFileStats(): Promise<{
@@ -93,11 +91,15 @@ class FileService {
     avgFileSize: number
     filesByType: Record<string, number>
   }> {
-    const response = await apiClient.get('/files/stats')
-    return response.data
+    const response = await apiClient.get<{
+      totalFiles: number
+      totalSize: number
+      avgFileSize: number
+      filesByType: Record<string, number>
+    }>('/files/stats')
+    return response
   }
-
-  validateFile(file: File, options?: {
+  validateFile(file: globalThis.File, options?: {
     maxSize?: number
     allowedTypes?: string[]
   }): { isValid: boolean; errors: string[] } {
@@ -117,6 +119,14 @@ class FileService {
       isValid: errors.length === 0,
       errors
     }
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 }
 

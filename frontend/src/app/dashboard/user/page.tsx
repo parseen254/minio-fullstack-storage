@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { authService } from '@/services/auth'
+import { authService, User as AuthUser } from '@/services/auth'
 import { useUserPosts } from '@/hooks/use-posts'
 import { useUserFiles } from '@/hooks/use-files'
 import { UserProfileCard } from '@/components/user/user-profile-card'
@@ -22,10 +22,11 @@ import {
   Eye,
   Edit
 } from 'lucide-react'
+import type { Post, File } from '@/types/api'
 
 export default function UserDashboardPage() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
   
   useEffect(() => {
@@ -37,9 +38,8 @@ export default function UserDashboardPage() {
     const currentUser = authService.getCurrentUser()
     setUser(currentUser)
   }, [router])
-
-  const { data: userPosts } = useUserPosts({ userId: user?.id })
-  const { data: userFiles } = useUserFiles({ userId: user?.id })
+  const { data: userPosts } = useUserPosts({ userId: user?.id || '' })
+  const { data: userFiles } = useUserFiles(user?.id || '')
 
   if (!user) {
     return (
@@ -225,7 +225,7 @@ export default function UserDashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {userPosts?.data?.slice(0, 3).map((post) => (
+                  {userPosts?.data?.slice(0, 3).map((post: Post) => (
                     <div key={post.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                       <FileText className="h-5 w-5 text-blue-600" />
                       <div className="flex-1">
@@ -240,7 +240,7 @@ export default function UserDashboardPage() {
                     </div>
                   ))}
                   
-                  {userFiles?.data?.slice(0, 2).map((file) => (
+                  {userFiles?.data?.slice(0, 2).map((file: File) => (
                     <div key={file.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
                       <Upload className="h-5 w-5 text-green-600" />
                       <div className="flex-1">

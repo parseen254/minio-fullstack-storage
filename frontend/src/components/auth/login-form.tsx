@@ -55,7 +55,8 @@ export const LoginForm: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               {error && (
-                <Alert type="error" title="Login Failed">
+                <Alert variant="destructive">
+                  <span className="font-semibold">Login Failed: </span>
                   {error.message || 'Invalid credentials. Please try again.'}
                 </Alert>
               )}

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { authService } from '@/services/auth'
+import { authService, User } from '@/services/auth'
 import { useUsers } from '@/hooks/use-users'
 import { usePosts } from '@/hooks/use-posts'
 import { useFiles } from '@/hooks/use-files'
@@ -26,7 +26,7 @@ import {
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
   
   const { data: usersData } = useUsers()

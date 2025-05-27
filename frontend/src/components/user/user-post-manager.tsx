@@ -41,6 +41,7 @@ import {
   Calendar
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import type { Post } from '@/types/api'
 
 interface UserPostManagerProps {
   user: {
@@ -132,7 +133,7 @@ export function UserPostManager({ user }: UserPostManagerProps) {
     }
   }
 
-  const filteredPosts = postsData?.data?.filter(post =>
+  const filteredPosts = postsData?.data?.filter((post: Post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (post.summary && post.summary.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -276,9 +277,8 @@ export function UserPostManager({ user }: UserPostManagerProps) {
                         <p className="text-sm">Create your first post to get started</p>
                       </div>
                     </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredPosts.map((post) => (
+                  </TableRow>                ) : (
+                  filteredPosts.map((post: Post) => (
                     <TableRow key={post.id}>
                       <TableCell>
                         <div className="space-y-1">
@@ -302,7 +302,7 @@ export function UserPostManager({ user }: UserPostManagerProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {post.tags?.slice(0, 2).map((tag, index) => (
+                          {post.tags?.slice(0, 2).map((tag: string, index: number) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {tag}
                             </Badge>

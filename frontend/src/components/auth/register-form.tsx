@@ -63,7 +63,7 @@ export const RegisterForm: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               {error && (
-                <Alert type="error" title="Registration Failed">
+                <Alert variant="destructive" title="Registration Failed">
                   {error.message || 'Registration failed. Please try again.'}
                 </Alert>
               )}

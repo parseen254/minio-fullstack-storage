@@ -33,6 +33,7 @@ import {
   AlertTriangle
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
+import type { Post, File } from '@/types/api'
 
 export function ContentModerationPanel() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -88,7 +89,7 @@ export function ContentModerationPanel() {
     }
   }
 
-  const filteredPosts = postsData?.data?.filter(post =>
+  const filteredPosts = postsData?.data?.filter((post: Post) =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.content.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
@@ -125,7 +126,7 @@ export function ContentModerationPanel() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPosts.map((post) => (
+            {filteredPosts.map((post: Post) => (
               <TableRow key={post.id}>
                 <TableCell>
                   <div className="flex items-center space-x-2">

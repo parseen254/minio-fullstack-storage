@@ -20,7 +20,7 @@ export const useFileUpload = () => {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress | null>(null)
   
   const mutation = useMutation({
-    mutationFn: (file: File) => 
+    mutationFn: (file: globalThis.File) => 
       fileService.uploadFile(file, setUploadProgress),
     onSuccess: () => {
       // Invalidate files queries if they exist
@@ -45,7 +45,7 @@ export const useMultipleFileUpload = () => {
   const [completedUploads, setCompletedUploads] = useState<Record<number, boolean>>({})
   
   const mutation = useMutation({
-    mutationFn: (files: File[]) => 
+    mutationFn: (files: globalThis.File[]) => 
       fileService.uploadMultipleFiles(
         files,
         (fileIndex, progress) => {
@@ -114,14 +114,14 @@ export const useDeleteFile = () => {
 
 // File Validation Hook
 export const useFileValidation = () => {
-  const validateFile = (file: File, options?: {
+  const validateFile = (file: globalThis.File, options?: {
     maxSize?: number
     allowedTypes?: string[]
   }) => {
     return fileService.validateFile(file, options)
   }
 
-  const validateFiles = (files: File[], options?: {
+  const validateFiles = (files: globalThis.File[], options?: {
     maxSize?: number
     allowedTypes?: string[]
   }) => {
