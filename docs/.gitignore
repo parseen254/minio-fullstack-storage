@@ -1,0 +1,92 @@
+# Documentation .gitignore
+
+# =============================================================================
+# STATIC SITE GENERATORS
+# =============================================================================
+# Jekyll
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+
+# Hugo
+public/
+resources/_gen/
+
+# GitBook
+_book/
+.grunt/
+
+# VuePress
+.vuepress/dist/
+
+# Docusaurus
+.docusaurus/
+build/
+
+# =============================================================================
+# DOCUMENTATION TOOLS
+# =============================================================================
+# Sphinx
+_build/
+.doctrees/
+
+# MkDocs
+site/
+
+# Gitiles
+.gitiles/
+
+# =============================================================================
+# GENERATED CONTENT
+# =============================================================================
+# Auto-generated API docs
+api/generated/
+openapi/generated/
+
+# Generated diagrams
+*.plantuml.png
+*.plantuml.svg
+diagrams/generated/
+
+# Generated screenshots
+screenshots/auto/
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+# Markdown temporary files
+*.md~
+*.md.bak
+
+# Temporary images
+*.tmp.png
+*.tmp.jpg
+*.tmp.svg
+
+# =============================================================================
+# EDITOR SPECIFIC
+# =============================================================================
+# VS Code
+.vscode/settings.json
+
+# Typora
+.typora/
+
+# =============================================================================
+# NODE.JS (if using tools like markdownlint)
+# =============================================================================
+node_modules/
+package-lock.json
+
+# =============================================================================
+# OS SPECIFIC
+# =============================================================================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Linux
+*~
