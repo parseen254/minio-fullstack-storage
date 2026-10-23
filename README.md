@@ -1,143 +1,49 @@
-# MinIO Scalable Storage System
+# minio-fullstack-storage
 
-A production-ready, scalable storage system built with MinIO object storage, featuring a modern web interface and complete backend API. This system replaces traditional databases with MinIO for scalable, distributed storage.
+A full-stack app that keeps all of its data in MinIO, with no database. Users, posts, and uploaded files each live in their own bucket as objects. I built it to see how far object storage gets you before you miss SQL.
 
-## Architecture Overview
+## What's in it
 
-This system implements a microservices architecture with the following components:
+- `backend/`: Go API on Gin. JWT auth with bcrypt-hashed passwords, role-based route protection, CRUD for users and posts, and file upload and download through `minio-go`. Swagger UI is served at `/swagger/index.html`.
+- `frontend/`: Next.js 14 console (App Router, TypeScript, Tailwind, shadcn/ui, TanStack Query) for managing users, posts, and files.
+- `docker/`: Compose files for dev (hot reload on both sides) and prod (multi-stage builds, non-root containers, health checks, resource limits).
+- `k8s/base/`: Kubernetes manifests for the storage layer and the two apps.
+- `monitoring/`: a Prometheus and Grafana compose file.
 
-- **Backend API**: Golang-based REST API using Gin framework
-- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
-- **Storage**: MinIO object storage for all data persistence
-- **Cache**: Redis for session management and caching
-- **Message Queue**: NATS for asynchronous processing
-- **Authentication**: JWT-based authentication system
-- **Deployment**: Docker containers with Kubernetes orchestration
+The compose files also start Redis and NATS. The backend doesn't use either yet.
 
-## Technology Stack
+Buckets are created on startup. Each object keeps its content type and ETag, which is what the API uses for file metadata.
 
-### Backend
-- **Language**: Go 1.23+
-- **Framework**: Gin HTTP router
-- **Storage**: MinIO object storage
-- **Authentication**: JWT with bcrypt password hashing
-- **Cache**: Redis
-- **Message Queue**: NATS
-- **Configuration**: Environment variables
+## Quick start
 
-### Frontend
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **State Management**: React Query (TanStack Query)
-- **HTTP Client**: Fetch API
+You need Docker and Docker Compose. For running outside Docker you also need Go 1.23+ and Node.js 18+.
 
-### Infrastructure
-- **Containerization**: Docker
-- **Orchestration**: Kubernetes
-- **Service Mesh**: Available for production deployments
-- **Monitoring**: Prometheus and Grafana ready
-- **CI/CD**: GitHub Actions pipeline
+### Development
 
-## Features
+```bash
+git clone https://github.com/parseen254/minio-fullstack-storage
+cd minio-fullstack-storage
+./scripts/dev.sh start
+```
 
-### Core Functionality
-- User authentication and authorization
-- User profile management
-- Post creation and management
-- File upload and storage
-- RESTful API with proper error handling
-- Pagination support for large datasets
-- Role-based access control
+Or by hand: `cd docker && docker-compose -f docker-compose.dev.yml up -d`.
 
-### Storage Features
-- Object-based storage using MinIO
-- Bucket-based data organization
-- Automatic bucket initialization
-- File metadata management
-- Content type detection
-- ETags for data integrity
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8080
+- MinIO console: http://localhost:9001 (minioadmin / minioadmin123)
 
-### Security Features
-- JWT token-based authentication
-- Password hashing with bcrypt
-- CORS configuration
-- Request validation
-- Environment-based configuration
-- Role-based endpoint protection
+### Production
 
-## Quick Start
+```bash
+cp docker/.env.prod.template docker/.env.prod   # then fill in real values
+./scripts/prod.sh deploy
+```
 
-### Prerequisites
-- Docker and Docker Compose
-- Go 1.23+ (for local development)
-- Node.js 18+ (for frontend development)
+Or by hand: `cd docker && docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d`.
 
-### Docker Setup (Recommended)
+### Scripts
 
-This project provides optimized Docker configurations for both development and production environments.
-
-#### Development Environment
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd minio-fullstack-storage
-   ```
-
-2. **Start development environment**
-   ```bash
-   # Using the convenience script
-   ./scripts/dev.sh start
-   
-   # Or manually with docker-compose
-   cd docker
-   docker-compose -f docker-compose.dev.yml up -d
-   ```
-
-3. **Access the application**
-   - Frontend: http://localhost:3000 (Next.js with hot reload)
-   - Backend: http://localhost:8080 (Go with Air hot reload)
-   - MinIO Console: http://localhost:9001 (admin: minioadmin/minioadmin123)
-
-**Development Features:**
-- Hot reload for both frontend and backend
-- Volume mounts for instant code changes
-- Debug-friendly logging
-- Development-optimized images
-- Auto-restart on file changes
-
-#### Production Environment
-
-1. **Setup production environment**
-   ```bash
-   # Create production environment file
-   cp docker/.env.prod.template docker/.env.prod
-   # Edit .env.prod with your production values
-   ```
-
-2. **Deploy to production**
-   ```bash
-   # Using the convenience script
-   ./scripts/prod.sh deploy
-   
-   # Or manually
-   cd docker
-   docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
-   ```
-
-**Production Features:**
-- Multi-stage builds for minimal image sizes
-- Non-root user containers for security
-- Health checks and restart policies
-- Resource limits and logging
-- Optimized layer caching
-- Zero-downtime deployments
-
-#### Management Scripts
-
-**Development Script (`scripts/dev.sh`)**
+`scripts/dev.sh`:
 ```bash
 ./scripts/dev.sh start     # Start development environment
 ./scripts/dev.sh stop      # Stop development environment
@@ -150,47 +56,30 @@ This project provides optimized Docker configurations for both development and p
 ./scripts/dev.sh test      # Run backend tests
 ```
 
-**Production Script (`scripts/prod.sh`)**
+`scripts/prod.sh`:
 ```bash
 ./scripts/prod.sh start     # Start production environment
 ./scripts/prod.sh stop      # Stop production environment
-./scripts/prod.sh deploy    # Deploy with zero downtime
+./scripts/prod.sh deploy    # Build and deploy
 ./scripts/prod.sh backup    # Backup all volumes
 ./scripts/prod.sh restore   # Restore from backup
 ./scripts/prod.sh health    # Check service health
 ./scripts/prod.sh scale     # Scale services
 ```
 
-### Local Development Setup (Alternative)
+### Without Docker for the apps
 
-If you prefer to run services locally without Docker:
+```bash
+cd docker && docker-compose up -d minio      # storage only
+cd ../backend && go run ./cmd/server
+cd ../frontend && npm install && npm run dev
+```
 
-1. **Start infrastructure services**
-   ```bash
-   cd docker
-   docker-compose up -d minio redis nats
-   ```
+### Environment variables
 
-2. **Start the backend**
-   ```bash
-   cd backend
-   go mod download
-   go build -o bin/server ./cmd/server
-   ./bin/server
-   ```
+Each app reads a `.env` file in its own directory:
 
-3. **Start the frontend**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-
-### Environment Variables
-
-Create `.env` files in the respective directories:
-
-**Backend (.env)**
+Backend (`.env`):
 ```env
 PORT=8080
 MINIO_ENDPOINT=localhost:9000
@@ -206,81 +95,43 @@ POSTS_BUCKET=posts
 FILES_BUCKET=files
 ```
 
-**Frontend (.env.local)**
+Frontend (`.env.local`):
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
-## API Documentation
+## API
 
-### Authentication Endpoints
+### Auth
 
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `GET /api/v1/profile` - Get user profile (authenticated)
+- `POST /api/v1/auth/register`: User registration
+- `POST /api/v1/auth/login`: User login
+- `GET /api/v1/profile`: Get user profile (authenticated)
 
-### User Management
+### Users
 
-- `GET /api/v1/users/` - List users (admin)
-- `GET /api/v1/users/:id` - Get user by ID
-- `PUT /api/v1/users/:id` - Update user
-- `DELETE /api/v1/users/:id` - Delete user
+- `GET /api/v1/users/`: List users (admin)
+- `GET /api/v1/users/:id`: Get user by ID
+- `PUT /api/v1/users/:id`: Update user
+- `DELETE /api/v1/users/:id`: Delete user
 
-### Post Management
+### Posts
 
-- `POST /api/v1/posts/` - Create post
-- `GET /api/v1/posts/` - List posts
-- `GET /api/v1/posts/:id` - Get post by ID
-- `PUT /api/v1/posts/:id` - Update post
-- `DELETE /api/v1/posts/:id` - Delete post
-- `GET /api/v1/posts/user/:userId` - Get user posts
+- `POST /api/v1/posts/`: Create post
+- `GET /api/v1/posts/`: List posts
+- `GET /api/v1/posts/:id`: Get post by ID
+- `PUT /api/v1/posts/:id`: Update post
+- `DELETE /api/v1/posts/:id`: Delete post
+- `GET /api/v1/posts/user/:userId`: Get user posts
 
-### File Management
+### Files
 
-- `POST /api/v1/files/upload` - Upload file
-- `GET /api/v1/files/:id` - Get file metadata
-- `GET /api/v1/files/:id/download` - Download file
-- `DELETE /api/v1/files/:id` - Delete file
+- `POST /api/v1/files/upload`: Upload file
+- `GET /api/v1/files/:id`: Get file metadata
+- `GET /api/v1/files/:id/download`: Download file
+- `DELETE /api/v1/files/:id`: Delete file
 
-## Deployment
-
-### Docker Deployment
-
-1. **Build images**
-   ```bash
-   # Backend
-   docker build -t minio-storage/backend:latest ./backend
-   
-   # Frontend
-   docker build -t minio-storage/frontend:latest ./frontend
-   ```
-
-2. **Deploy with Docker Compose**
-   ```bash
-   docker-compose -f docker/docker-compose.yml up -d
-   ```
-
-### Kubernetes Deployment
-
-1. **Deploy infrastructure**
-   ```bash
-   kubectl apply -f k8s/base/infrastructure.yaml
-   ```
-
-2. **Deploy applications**
-   ```bash
-   kubectl apply -f k8s/base/applications.yaml
-   ```
-
-3. **Check deployment status**
-   ```bash
-   kubectl get pods -n minio-storage
-   kubectl get services -n minio-storage
-   ```
-
-## Development
-
-### Project Structure
+## Layout
 
 ```
 minio-fullstack-storage/
@@ -309,128 +160,26 @@ minio-fullstack-storage/
 └── scripts/                 # Utility scripts
 ```
 
-### Backend Development
+## Kubernetes
 
-The backend follows a clean architecture pattern:
-
-- **Handlers**: HTTP request/response handling
-- **Services**: Business logic and data operations
-- **Models**: Data structures and validation
-- **Auth**: Authentication and authorization
-- **Config**: Environment and configuration management
-
-### Frontend Development
-
-The frontend uses modern React patterns:
-
-- **App Router**: Next.js 14 app router for routing
-- **Components**: Reusable UI components with shadcn/ui
-- **Services**: API client with proper error handling
-- **Types**: TypeScript for type safety
-- **Styling**: Tailwind CSS for responsive design
-
-## Testing
-
-### Backend Testing
 ```bash
-cd backend
-go test ./...
+kubectl apply -f k8s/base/infrastructure.yaml
+kubectl apply -f k8s/base/applications.yaml
+kubectl get pods -n minio-storage
 ```
 
-### Frontend Testing
+## Tests
+
 ```bash
-cd frontend
-npm test
+cd backend && go test ./...
+cd frontend && npm test
+./scripts/integration-test.sh
 ```
 
-### Integration Testing
-```bash
-# Run full stack tests
-npm run test:e2e
-```
+## Not done yet
 
-## Monitoring and Observability
-
-### Health Checks
-- Backend: `GET /health`
-- Frontend: Health checks via Kubernetes probes
-
-### Metrics
-- Prometheus metrics available on backend
-- Grafana dashboards for visualization
-
-### Logging
-- Structured logging with JSON format
-- Centralized log collection available
-
-## Performance
-
-### Scalability Features
-- Horizontal scaling with Kubernetes
-- Load balancing for high availability
-- Connection pooling for database efficiency
-- Caching layer with Redis
-
-### Performance Optimizations
-- MinIO distributed storage
-- CDN-ready static asset serving
-- Optimized Docker images
-- Resource limits and requests
-
-## Security
-
-### Authentication
-- JWT tokens with configurable expiration
-- Secure password hashing with bcrypt
-- Role-based access control
-
-### Data Protection
-- Environment variable configuration
-- Secrets management in Kubernetes
-- CORS protection
-- Input validation and sanitization
-
-### Network Security
-- HTTPS/TLS ready configuration
-- Network policies for Kubernetes
-- Container security scanning
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+Multi-tenancy, caching through the Redis that's already in compose, and WebSocket updates.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support and questions:
-- Create an issue in the repository
-- Check the documentation
-- Review the API documentation
-
-## Roadmap
-
-### Phase 1 (Current)
-- Core API functionality
-- Basic frontend interface
-- Docker deployment
-
-### Phase 2
-- Advanced monitoring
-- Performance optimization
-- Enhanced security features
-
-### Phase 3
-- Multi-tenancy support
-- Advanced caching strategies
-- Real-time features with WebSockets
-
----
-
-Built with MinIO, Go, Next.js, and Kubernetes for modern cloud-native applications.
+MIT. See LICENSE.
